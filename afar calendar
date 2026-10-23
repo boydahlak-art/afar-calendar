@@ -1,0 +1,192 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#082d50">
+<title>Afar Calendar</title>
+<style>
+:root{--navy:#082d50;--blue:#075da0;--red:#a30f16;--gold:#f3c642;--cream:#fff8df;--ink:#18212b}
+*{box-sizing:border-box}body{margin:0;background:#f2f5f8;color:var(--ink);font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif}
+header{background:linear-gradient(135deg,#061d36,var(--navy));color:white;padding:22px 16px 25px;text-align:center;border-bottom:5px solid var(--gold)}
+.brand{font-size:clamp(26px,6vw,38px);font-weight:850;letter-spacing:.2px}.subtitle{margin-top:5px;color:#e8eef7}
+.wrap{max-width:760px;margin:18px auto;padding:0 12px 30px}.panel{background:white;border-radius:18px;box-shadow:0 5px 20px #132b4412;overflow:hidden;margin-bottom:15px}
+.toolbar{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:14px;flex-wrap:wrap}.btn{border:1px solid #d5dce4;background:white;border-radius:11px;padding:10px 13px;font-size:15px;font-weight:700;color:var(--navy);cursor:pointer}.btn.primary{background:var(--blue);border-color:var(--blue);color:white}.monthtitle{text-align:center;flex:1;min-width:130px}.monthtitle h2{font-size:23px;margin:0;color:var(--navy)}.monthtitle p{margin:3px 0 0;color:#596778}
+.week,.days{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));padding:0 10px;gap:5px}.week div{text-align:center;padding:8px 0;color:#526071;font-size:12px;font-weight:800}.days{padding-bottom:14px}.day{min-height:62px;border:1px solid #e1e6eb;border-radius:10px;padding:7px 3px;text-align:center;background:#fff;font-size:15px}.day.empty{border-color:transparent;background:transparent}.day.today{border:2px solid var(--red);background:#fff4f1;font-weight:850}.day .mark{display:block;font-size:9px;color:var(--red);margin-top:3px}
+.info{padding:15px 17px}.info h3{margin:0 0 8px;color:var(--navy)}.monthlist{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:0 14px 15px}.monthitem{display:flex;align-items:center;gap:9px;border:1px solid #e0e6ec;border-radius:11px;padding:10px;background:#fff;text-align:left;color:var(--ink);cursor:pointer;min-width:0}.monthitem.active{border:2px solid var(--gold);background:#fff9e5}.num{display:grid;place-items:center;min-width:30px;height:30px;border-radius:8px;background:var(--gold);font-weight:900}.monthitem strong{display:block;font-size:14px;overflow-wrap:anywhere}.monthitem small{color:#526071}.controls{display:flex;align-items:center;gap:8px;flex-wrap:wrap}.controls label{font-weight:700}.controls select{padding:9px;border:1px solid #cbd5df;border-radius:9px;background:white;font-size:15px}
+.note{font-size:13px;line-height:1.5;color:#586575;padding:0 16px 16px}.footer{text-align:center;color:#657181;font-size:12px;padding:5px 10px 20px}
+@media(max-width:440px){.monthlist{grid-template-columns:1fr}.day{min-height:49px;padding-top:5px}.toolbar{padding:11px}.btn{padding:9px 10px}.week,.days{gap:3px;padding-left:7px;padding-right:7px}}
+</style>
+</head>
+<body>
+<header><div class="brand">Afar Calendar</div><div class="subtitle" id="subtitle">Qafár Af • English • 12 months</div></header>
+<main class="wrap">
+  <section class="panel">
+    <div class="toolbar">
+      <button class="btn" id="prev" aria-label="Previous month">‹</button>
+      <div class="monthtitle"><h2 id="monthName">Agdá-Baxisso</h2><p id="gregorianName">January 2026</p></div>
+      <button class="btn" id="next" aria-label="Next month">›</button>
+    </div>
+    <div class="toolbar" style="padding-top:0">
+      <button class="btn primary" id="todayBtn">Today</button>
+      <div class="controls">
+        <label for="language">Language</label>
+        <select id="language">
+          <option value="both">Qafár Af + English</option>
+          <option value="afar">Qafár Af</option>
+          <option value="english">English</option>
+        </select>
+      </div>
+    </div>
+    <div class="week" id="week"></div>
+    <div class="days" id="days" aria-live="polite"></div>
+  </section>
+
+  <section class="panel">
+    <div class="info"><h3 id="monthsHeading">The 12 months</h3></div>
+    <div class="monthlist" id="monthlist"></div>
+    <p class="note" id="ruleNote">Calendar note: these month names are paired with Gregorian months according to your reference image. This first version uses Gregorian dates and does not yet calculate a separate Afar year, New Year, leap-year rule, or traditional day names.</p>
+  </section>
+
+  <div class="footer">Afar Calendar • Built from your 12-month reference chart</div>
+</main>
+
+<script>
+const months = [
+  { afar: "Agdá-Baxisso", en: "January" },
+  { afar: "Caxáh-Alsa", en: "February" },
+  { afar: "Qadó-Dirri", en: "March" },
+  { afar: "Qasá-Dirri", en: "April" },
+  { afar: "Laqini", en: "May" },
+  { afar: "Waysu", en: "June" },
+  { afar: "Diteli", en: "July" },
+  { afar: "Ximoli", en: "August" },
+  { afar: "Qinxá-Garablú", en: "September" },
+  { afar: "Kaxxá-Garablú", en: "October" },
+  { afar: "Naharsí-Kudo", en: "November" },
+  { afar: "Ciggiilá-Kudo", en: "December" }
+];
+
+const labels = {
+  both: {
+    week: ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"],
+    months: "The 12 months",
+    today: "Today",
+    note: "Calendar note: these month names are paired with Gregorian months according to your reference image. This first version uses Gregorian dates and does not yet calculate a separate Afar year, New Year, leap-year rule, or traditional day names."
+  },
+  afar: {
+    week: ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"],
+    months: "12 Qafár Ayro",
+    today: "Today",
+    note: "Takkayri: Qafár month magacitte inkih ku reference image innah Gregorian monthitte fanah xayyowte. Awwaytu vershinii Gregorian date elle xisaabisa. Qafár sanad, sanad cusub, leap-year, kee Qafár ayro magacitte xeeritte kinnim xaqiijiyyaah yan."
+  },
+  english: {
+    week: ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"],
+    months: "12 months",
+    today: "Today",
+    note: "Calendar note: these month names are paired with Gregorian months according to your reference image. This version uses Gregorian dates; separate Afar calendar rules still need verification."
+  }
+};
+
+let shown = new Date();
+shown.setDate(1);
+
+const $ = (id) => document.getElementById(id);
+
+function getLanguage() {
+  return $("language").value;
+}
+
+function monthLabel(i) {
+  if (getLanguage() === "english") return months[i].en;
+  if (getLanguage() === "afar") return months[i].afar;
+  return months[i].afar + " • " + months[i].en;
+}
+
+function render() {
+  const L = labels[getLanguage()];
+  const year = shown.getFullYear();
+  const monthIndex = shown.getMonth();
+
+  $("subtitle").textContent =
+    getLanguage() === "afar"
+      ? "Qafár Af • 12 ayro"
+      : getLanguage() === "english"
+      ? "English • 12 months"
+      : "Qafár Af • English • 12 months";
+
+  $("monthName").textContent =
+    getLanguage() === "english" ? months[monthIndex].en : months[monthIndex].afar;
+
+  $("gregorianName").textContent = months[monthIndex].en + " " + year;
+
+  $("todayBtn").textContent = L.today;
+  $("monthsHeading").textContent = L.months;
+  $("ruleNote").textContent = L.note;
+
+  $("week").innerHTML = L.week.map((day) => "<div>" + day + "</div>").join("");
+
+  const firstDay = new Date(year, monthIndex, 1).getDay();
+  const totalDays = new Date(year, monthIndex + 1, 0).getDate();
+  const today = new Date();
+
+  let dayCells = "";
+  for (let i = 0; i < firstDay; i++) {
+    dayCells += '<div class="day empty"></div>';
+  }
+
+  for (let day = 1; day <= totalDays; day++) {
+    const isToday =
+      year === today.getFullYear() &&
+      monthIndex === today.getMonth() &&
+      day === today.getDate();
+
+    dayCells +=
+      '<div class="day' + (isToday ? " today" : "") + '">' +
+      day +
+      (isToday ? '<span class="mark">TODAY</span>' : "") +
+      "</div>";
+  }
+
+  $("days").innerHTML = dayCells;
+
+  $("monthlist").innerHTML = months
+    .map((mo, i) =>
+      '<button class="monthitem' + (i === monthIndex ? " active" : "") + '" data-month="' + i + '">' +
+      '<span class="num">' + (i + 1) + "</span>" +
+      "<span><strong>" + mo.afar + "</strong><small>" + mo.en + "</small></span>" +
+      "</button>"
+    )
+    .join("");
+
+  document.querySelectorAll(".monthitem").forEach((button) => {
+    button.addEventListener("click", () => {
+      shown = new Date(shown.getFullYear(), Number(button.dataset.month), 1);
+      render();
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    });
+  });
+}
+
+$("prev").addEventListener("click", () => {
+  shown.setMonth(shown.getMonth() - 1);
+  render();
+});
+
+$("next").addEventListener("click", () => {
+  shown.setMonth(shown.getMonth() + 1);
+  render();
+});
+
+$("todayBtn").addEventListener("click", () => {
+  shown = new Date();
+  shown.setDate(1);
+  render();
+});
+
+$("language").addEventListener("change", render);
+
+render();
+</script>
+</body>
+</html>
